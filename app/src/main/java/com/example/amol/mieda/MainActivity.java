@@ -34,7 +34,6 @@ public class MainActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        // Floating Action Menu
         FloatingActionMenu fam = findViewById(R.id.fam);
         fam.setIconAnimated(false);
     }
