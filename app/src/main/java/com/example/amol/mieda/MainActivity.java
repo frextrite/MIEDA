@@ -1,7 +1,7 @@
 package com.example.amol.mieda;
 
+import android.content.Intent;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.view.View;
 import android.support.design.widget.NavigationView;
@@ -13,10 +13,14 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.github.clans.fab.FloatingActionButton;
 import com.github.clans.fab.FloatingActionMenu;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
+
+    private FloatingActionMenu fam;
+    private FloatingActionButton fab_camera, fab_audio;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,8 +38,21 @@ public class MainActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        FloatingActionMenu fam = findViewById(R.id.fam);
+        fam = findViewById(R.id.fam);
+        fab_camera = findViewById(R.id.fab_camera);
+
         fam.setIconAnimated(false);
+
+        fab_camera.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(fam.isOpened()) {
+                    fam.close(true);
+                }
+                Intent camera_intent = new Intent(MainActivity.this, CameraActivity.class);
+                startActivity(camera_intent);
+            }
+        });
     }
 
     @Override
