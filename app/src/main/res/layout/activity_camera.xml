@@ -7,10 +7,17 @@
     android:layout_height="match_parent"
     tools:context="com.example.amol.mieda.CameraActivity">
 
-    <TextureView
-        android:id="@+id/texture_view"
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent">
+
+        <com.wonderkiln.camerakit.CameraView
+            android:id="@+id/camera"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:adjustViewBounds="true" />
+
+    </FrameLayout>
 
     <com.github.clans.fab.FloatingActionButton
         android:id="@+id/fab_capture_image"
