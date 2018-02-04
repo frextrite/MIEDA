@@ -4,7 +4,6 @@ import android.graphics.Bitmap;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.ImageView;
 
 import com.github.clans.fab.FloatingActionButton;
 import com.wonderkiln.camerakit.CameraKit;
