@@ -1,5 +1,6 @@
 package com.example.amol.mieda;
 
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -11,10 +12,13 @@ import com.wonderkiln.camerakit.CameraKitEventCallback;
 import com.wonderkiln.camerakit.CameraKitImage;
 import com.wonderkiln.camerakit.CameraView;
 
+import java.io.ByteArrayOutputStream;
+
 public class CameraActivity extends AppCompatActivity {
 
     private CameraView cameraView;
     private FloatingActionButton fabCaptureImage;
+    public static final String KEY = "preview_image";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,16 +39,19 @@ public class CameraActivity extends AppCompatActivity {
                 cameraView.captureImage(new CameraKitEventCallback<CameraKitImage>() {
                     @Override
                     public void callback(CameraKitImage cameraKitImage) {
-                        cameraView.setFocus(CameraKit.Constants.FOCUS_OFF);
                         Bitmap image = cameraKitImage.getBitmap();
-                        /*runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                int nh = (int) ( image.getHeight() * (2048.0 / image.getWidth()) );
-                                Bitmap scaled = Bitmap.createScaledBitmap(image, 2048, nh, true);
-                                i.setImageBitmap(scaled);
-                            }
-                        });*/
+
+                        /* @TODO:
+                         * not use a global class instead save the image on storage */
+                        GlobalImage.finalImage = image;
+
+                        /*// Compressing Image
+                        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                        image.compress(Bitmap.CompressFormat.PNG, 100, stream);
+                        byte[] bytes = stream.toByteArray();*/
+
+                        Intent preview_intent = new Intent(CameraActivity.this, PreviewActivity.class);
+                        startActivity(preview_intent);
                     }
                 });
             }

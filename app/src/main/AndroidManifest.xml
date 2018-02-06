@@ -21,7 +21,10 @@
         </activity>
         <activity
             android:name=".CameraActivity"
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar.FullScreen" ></activity>
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar.FullScreen" />
+        <activity
+            android:name=".PreviewActivity"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar.FullScreen" />
     </application>
 
 </manifest>
