@@ -16,6 +16,11 @@ import android.view.MenuItem;
 import com.github.clans.fab.FloatingActionButton;
 import com.github.clans.fab.FloatingActionMenu;
 
+/* @TODO:
+ * Remove CameraActivity class
+ * Write Camera Code from scratch
+ * Use Intent(MediaStore.ACTION_IMAGE_CAPTURE */
+
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
