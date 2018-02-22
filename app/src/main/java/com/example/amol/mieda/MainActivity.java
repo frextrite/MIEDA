@@ -1,8 +1,16 @@
 package com.example.amol.mieda;
 
+import android.Manifest;
+import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.provider.MediaStore;
+import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
+import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -26,6 +34,9 @@ public class MainActivity extends AppCompatActivity
 
     private FloatingActionMenu fam;
     private FloatingActionButton fab_camera, fab_audio;
+    public static final int TAKE_PICTURE = 1;
+    private static final int MY_PERMISSIONS_REQUEST_CAMERA = 100;
+    private static final String TAG = "MainActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,8 +65,20 @@ public class MainActivity extends AppCompatActivity
                 if(fam.isOpened()) {
                     fam.close(true);
                 }
-                Intent camera_intent = new Intent(MainActivity.this, CameraActivity.class);
-                startActivity(camera_intent);
+                if (ContextCompat.checkSelfPermission(MainActivity.this,
+                        Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+
+                    if (ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this,
+                            Manifest.permission.CAMERA)) {
+
+                    } else {
+                        ActivityCompat.requestPermissions(MainActivity.this,
+                                new String[]{Manifest.permission.CAMERA}, MY_PERMISSIONS_REQUEST_CAMERA);
+                    }
+                } else {
+                    Intent camera_intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                    startActivityForResult(camera_intent, TAKE_PICTURE);
+                }
             }
         });
     }
@@ -107,5 +130,19 @@ public class MainActivity extends AppCompatActivity
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case MY_PERMISSIONS_REQUEST_CAMERA: {
+                if(grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    Intent camera_intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                    startActivityForResult(camera_intent, TAKE_PICTURE);
+                } else {
+                    Log.d(TAG, "onRequestPermissionsResult: DENIED!");
+                }
+            }
+        }
     }
 }
