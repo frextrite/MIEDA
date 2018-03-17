@@ -28,6 +28,9 @@ import com.github.clans.fab.FloatingActionButton;
 import com.github.clans.fab.FloatingActionMenu;
 
 import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 /* @TODO:
  * Remove CameraActivity class
@@ -88,7 +91,7 @@ public class MainActivity extends AppCompatActivity
                     Intent camera_intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                     File dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM);
 
-                    File image = new File(dir, "newFile.jpg");
+                    File image = new File(dir, generateFileName());
                     camera_intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(image));
                     camera_intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
                     camera_intent.setFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
@@ -170,5 +173,13 @@ public class MainActivity extends AppCompatActivity
 
         }
 
+    }
+
+    protected String generateFileName() {
+        String prefix = "MIEDA_";
+        String extension = ".jpg";
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(new Date());
+        String fileName = prefix + timeStamp + extension;
+        return fileName;
     }
 }
