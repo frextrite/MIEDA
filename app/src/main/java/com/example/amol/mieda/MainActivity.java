@@ -4,7 +4,10 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
+import android.os.StrictMode;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
@@ -23,6 +26,8 @@ import android.view.MenuItem;
 
 import com.github.clans.fab.FloatingActionButton;
 import com.github.clans.fab.FloatingActionMenu;
+
+import java.io.File;
 
 /* @TODO:
  * Remove CameraActivity class
@@ -76,7 +81,18 @@ public class MainActivity extends AppCompatActivity
                                 new String[]{Manifest.permission.CAMERA}, MY_PERMISSIONS_REQUEST_CAMERA);
                     }
                 } else {
+                    // Fixes ClipData.Item.getUri() error
+                    StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
+                    StrictMode.setVmPolicy(builder.build());
+
                     Intent camera_intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                    File dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM);
+
+                    File image = new File(dir, "newFile.jpg");
+                    camera_intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(image));
+                    camera_intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                    camera_intent.setFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+
                     startActivityForResult(camera_intent, TAKE_PICTURE);
                 }
             }
@@ -144,5 +160,15 @@ public class MainActivity extends AppCompatActivity
                 }
             }
         }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if(requestCode == TAKE_PICTURE && resultCode == RESULT_OK) {
+
+        }
+
     }
 }
