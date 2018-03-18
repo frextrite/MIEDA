@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -45,6 +46,7 @@ public class MainActivity extends AppCompatActivity
     public static final int TAKE_PICTURE = 1;
     private static final int MY_PERMISSIONS_REQUEST_CAMERA = 100;
     private static final String TAG = "MainActivity";
+    private static String FILE_NAME = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,6 +86,7 @@ public class MainActivity extends AppCompatActivity
                                 new String[]{Manifest.permission.CAMERA}, MY_PERMISSIONS_REQUEST_CAMERA);
                     }
                 } else {
+                    generateFileName();
                     // Fixes ClipData.Item.getUri() error
                     StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
                     StrictMode.setVmPolicy(builder.build());
@@ -91,7 +94,7 @@ public class MainActivity extends AppCompatActivity
                     Intent camera_intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                     File dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM);
 
-                    File image = new File(dir, generateFileName());
+                    File image = new File(dir, FILE_NAME);
                     camera_intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(image));
                     camera_intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
                     camera_intent.setFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
@@ -170,16 +173,19 @@ public class MainActivity extends AppCompatActivity
         super.onActivityResult(requestCode, resultCode, data);
 
         if(requestCode == TAKE_PICTURE && resultCode == RESULT_OK) {
-
+            String path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM) + "/" + FILE_NAME;
+            Intent preview = new Intent(MainActivity.this, PreviewActivity.class);
+            preview.putExtra("PATH_NAME", path);
+            Log.d(TAG, "onActivityResult: " + path);
+            startActivity(preview);
         }
 
     }
 
-    protected String generateFileName() {
+    protected void generateFileName() {
         String prefix = "MIEDA_";
         String extension = ".jpg";
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(new Date());
-        String fileName = prefix + timeStamp + extension;
-        return fileName;
+        FILE_NAME = prefix + timeStamp + extension;
     }
 }
