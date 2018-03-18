@@ -7,6 +7,7 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.StrictMode;
@@ -30,8 +31,20 @@ import android.view.MenuItem;
 import com.github.clans.fab.FloatingActionButton;
 import com.github.clans.fab.FloatingActionMenu;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -52,6 +65,7 @@ public class MainActivity extends AppCompatActivity
     private static String FILE_NAME = null;
     private static String PATH = Environment.DIRECTORY_DCIM;
     private static String ENCODED_IMAGE = null;
+    private JSONObject jsonObject;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -183,6 +197,8 @@ public class MainActivity extends AppCompatActivity
             Intent preview = new Intent(MainActivity.this, PreviewActivity.class);
             preview.putExtra("PATH_NAME", path);
             Log.d(TAG, "onActivityResult: " + path);
+            encodeBitmapToBase64String();
+            new UploadImage().execute();
             startActivity(preview);
         }
 
@@ -202,5 +218,71 @@ public class MainActivity extends AppCompatActivity
         byte[] b = byteStream.toByteArray();
         String encodedImage = Base64.encodeToString(b, Base64.DEFAULT);
         ENCODED_IMAGE = encodedImage;
+    }
+
+
+
+    private class UploadImage extends AsyncTask<Void, Void, Void> {
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            try {
+                jsonObject = new JSONObject();
+                jsonObject.put("imageBase64", ENCODED_IMAGE);
+                String dataToSend = jsonObject.toString();
+                String whereToSend = "http://192.168.1.xxx:XXXX";
+                URL url = new URL(whereToSend);
+//                JSONObject jsoni = new JSONObject();
+//                jsoni.put("hey", "string long");
+//                dataToSend = jsoni.toString();
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                connection.setDoOutput(true);
+                connection.setDoInput(true);
+                connection.setRequestMethod("POST");
+                connection.setFixedLengthStreamingMode(dataToSend.getBytes().length);
+                connection.setRequestProperty("Content-Type", "application/json;charset=UTF-8");
+                connection.connect();
+
+                Log.d(TAG, "doInBackground: " + dataToSend);
+
+                DataOutputStream wr = new DataOutputStream(connection.getOutputStream());
+                wr.writeBytes(dataToSend);
+                wr.flush();
+                wr.close();
+
+
+                /* Read Data from Server */
+                InputStream in = new BufferedInputStream(connection.getInputStream());
+                BufferedReader reader = new BufferedReader(new InputStreamReader(in, "UTF-8"));
+                StringBuilder sb = new StringBuilder();
+                String line = null;
+                while ((line = reader.readLine()) != null) {
+                    sb.append(line);
+                }
+                in.close();
+                String result = sb.toString();
+                Log.d(TAG, "Response: " + result);
+                //Response = new JSONObject(result);
+                connection.disconnect();
+
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            } catch (JSONException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+        }
     }
 }
