@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -14,6 +15,7 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.util.Base64;
 import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
@@ -28,6 +30,7 @@ import android.view.MenuItem;
 import com.github.clans.fab.FloatingActionButton;
 import com.github.clans.fab.FloatingActionMenu;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -47,6 +50,8 @@ public class MainActivity extends AppCompatActivity
     private static final int MY_PERMISSIONS_REQUEST_CAMERA = 100;
     private static final String TAG = "MainActivity";
     private static String FILE_NAME = null;
+    private static String PATH = Environment.DIRECTORY_DCIM;
+    private static String ENCODED_IMAGE = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -174,6 +179,7 @@ public class MainActivity extends AppCompatActivity
 
         if(requestCode == TAKE_PICTURE && resultCode == RESULT_OK) {
             String path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM) + "/" + FILE_NAME;
+            PATH = path;
             Intent preview = new Intent(MainActivity.this, PreviewActivity.class);
             preview.putExtra("PATH_NAME", path);
             Log.d(TAG, "onActivityResult: " + path);
@@ -187,5 +193,14 @@ public class MainActivity extends AppCompatActivity
         String extension = ".jpg";
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(new Date());
         FILE_NAME = prefix + timeStamp + extension;
+    }
+
+    protected void encodeBitmapToBase64String() {
+        ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+        Bitmap bitmap = BitmapFactory.decodeFile(PATH);
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteStream);
+        byte[] b = byteStream.toByteArray();
+        String encodedImage = Base64.encodeToString(b, Base64.DEFAULT);
+        ENCODED_IMAGE = encodedImage;
     }
 }
