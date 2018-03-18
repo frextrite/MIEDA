@@ -43,7 +43,7 @@ public class CameraActivity extends AppCompatActivity {
 
                         /* @TODO:
                          * not use a global class instead save the image on storage */
-                        GlobalImage.finalImage = image;
+                        //GlobalImage.finalImage = image;
 
                         /*// Compressing Image
                         ByteArrayOutputStream stream = new ByteArrayOutputStream();
