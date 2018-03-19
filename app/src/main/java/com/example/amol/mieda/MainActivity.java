@@ -63,7 +63,7 @@ public class MainActivity extends AppCompatActivity
     private static final int MY_PERMISSIONS_REQUEST_CAMERA = 100;
     private static final String TAG = "MainActivity";
     private static String FILE_NAME = null;
-    private static String PATH = Environment.DIRECTORY_DCIM;
+    private static String PATH = null; //Environment.DIRECTORY_DCIM;
     private static String ENCODED_IMAGE = null;
     private JSONObject jsonObject;
 
