@@ -1,7 +1,6 @@
 package com.example.amol.mieda;
 
 import android.Manifest;
-import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -13,7 +12,6 @@ import android.os.Environment;
 import android.os.StrictMode;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Base64;
@@ -49,51 +47,52 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
-/* @TODO:
- * Remove CameraActivity class
- * Write Camera Code from scratch
- * Use Intent(MediaStore.ACTION_IMAGE_CAPTURE */
-
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
+    /* Variable Declarations */
     private FloatingActionMenu fam;
     private FloatingActionButton fab_camera, fab_audio;
-    public static final int TAKE_PICTURE = 1;
+
+    private static final int TAKE_PICTURE = 1;
     private static final int MY_PERMISSIONS_REQUEST_CAMERA = 100;
     private static final String TAG = "MainActivity";
+
     private static String FILE_NAME = null;
     private static String PATH = null; //Environment.DIRECTORY_DCIM;
     private static String ENCODED_IMAGE = null;
-    private JSONObject jsonObject;
+    private static String SERVER_URL = "http://192.168.1.xxx:XXXX";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.addDrawerListener(toggle);
         toggle.syncState();
 
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
         fam = findViewById(R.id.fam);
         fab_camera = findViewById(R.id.fab_camera);
 
-        fam.setIconAnimated(false);
+        fam.setIconAnimated(false); // Remove FAM animation
 
         fab_camera.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                /* Close FAM if it is opened */
                 if(fam.isOpened()) {
                     fam.close(true);
                 }
+
+                /* Check for Camera Permissions */
                 if (ContextCompat.checkSelfPermission(MainActivity.this,
                         Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
 
@@ -101,20 +100,26 @@ public class MainActivity extends AppCompatActivity
                             Manifest.permission.CAMERA)) {
 
                     } else {
+                        /* Ask for permission */
                         ActivityCompat.requestPermissions(MainActivity.this,
                                 new String[]{Manifest.permission.CAMERA}, MY_PERMISSIONS_REQUEST_CAMERA);
                     }
                 } else {
+                    /* Generate a new File Name */
                     generateFileName();
-                    // Fixes ClipData.Item.getUri() error
+
+                    /* Fixes ClipData.Item.getUri() error */
                     StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
                     StrictMode.setVmPolicy(builder.build());
 
+                    /* File is stored at the location: /storage/emulated/0/DCIM/FILE_NAME */
                     Intent camera_intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                     File dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM);
 
                     File image = new File(dir, FILE_NAME);
                     camera_intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(image));
+
+                    /* Grant URI Permissions */
                     camera_intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
                     camera_intent.setFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
 
@@ -126,7 +131,7 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onBackPressed() {
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
@@ -168,7 +173,7 @@ public class MainActivity extends AppCompatActivity
 
         }
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
@@ -191,19 +196,31 @@ public class MainActivity extends AppCompatActivity
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
+        /* Image has been captured and stored on the SD Card */
         if(requestCode == TAKE_PICTURE && resultCode == RESULT_OK) {
             String path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM) + "/" + FILE_NAME;
             PATH = path;
+
+            /* Start the Preview Activity */
             Intent preview = new Intent(MainActivity.this, PreviewActivity.class);
             preview.putExtra("PATH_NAME", path);
+
             Log.d(TAG, "onActivityResult: " + path);
+
+            /* Encode the current Image into a Base64 String */
             encodeBitmapToBase64String();
+
+            /* Send the image to the server */
             new UploadImage().execute();
+
+            /* Show the preview to the user */
             startActivity(preview);
         }
 
     }
 
+    /* Generates file name using current time stamp
+     * Format: MIEDA_yyyyMMdd_HHmmss.jpg */
     protected void generateFileName() {
         String prefix = "MIEDA_";
         String extension = ".jpg";
@@ -211,6 +228,7 @@ public class MainActivity extends AppCompatActivity
         FILE_NAME = prefix + timeStamp + extension;
     }
 
+    /* Convert the captures image into a Base64 String */
     protected void encodeBitmapToBase64String() {
         ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
         Bitmap bitmap = BitmapFactory.decodeFile(PATH);
@@ -221,32 +239,40 @@ public class MainActivity extends AppCompatActivity
     }
 
 
-
+    /* Upload image to server and get back the analysed data */
     private class UploadImage extends AsyncTask<Void, Void, Void> {
 
         @Override
         protected Void doInBackground(Void... voids) {
             try {
-                jsonObject = new JSONObject();
+                /* Create a new JSON Object */
+                JSONObject jsonObject = new JSONObject();
                 jsonObject.put("imageBase64", ENCODED_IMAGE);
+
+                /* Convert JSON data to String */
                 String dataToSend = jsonObject.toString();
-                String whereToSend = "http://192.168.1.xxx:XXXX";
-                URL url = new URL(whereToSend);
-//                JSONObject jsoni = new JSONObject();
-//                jsoni.put("hey", "string long");
-//                dataToSend = jsoni.toString();
+
+                /* Server URL */
+                URL url = new URL(SERVER_URL);
+
+                /* Create an Http connection */
                 HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+
+                /* Set parameters for Http connection */
                 connection.setDoOutput(true);
                 connection.setDoInput(true);
-                connection.setRequestMethod("POST");
+                connection.setRequestMethod("POST"); // We'll be using POST
                 connection.setFixedLengthStreamingMode(dataToSend.getBytes().length);
                 connection.setRequestProperty("Content-Type", "application/json;charset=UTF-8");
+
+                // Connect to the server
                 connection.connect();
 
                 Log.d(TAG, "doInBackground: " + dataToSend);
 
+                /* Send Data to Server */
                 DataOutputStream wr = new DataOutputStream(connection.getOutputStream());
-                wr.writeBytes(dataToSend);
+                wr.writeBytes(dataToSend); // Send data to the server
                 wr.flush();
                 wr.close();
 
@@ -255,14 +281,15 @@ public class MainActivity extends AppCompatActivity
                 InputStream in = new BufferedInputStream(connection.getInputStream());
                 BufferedReader reader = new BufferedReader(new InputStreamReader(in, "UTF-8"));
                 StringBuilder sb = new StringBuilder();
-                String line = null;
+                String line;
                 while ((line = reader.readLine()) != null) {
                     sb.append(line);
                 }
                 in.close();
                 String result = sb.toString();
                 Log.d(TAG, "Response: " + result);
-                //Response = new JSONObject(result);
+
+                /* Disconnect from server */
                 connection.disconnect();
 
             } catch (MalformedURLException e) {
