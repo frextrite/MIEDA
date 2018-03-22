@@ -44,7 +44,9 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity
@@ -55,7 +57,8 @@ public class MainActivity extends AppCompatActivity
     private FloatingActionButton fab_camera, fab_audio;
 
     private static final int TAKE_PICTURE = 1;
-    private static final int MY_PERMISSIONS_REQUEST_CAMERA = 100;
+    private static final int REQUEST_CODE_MULTIPLE_PERMISSIONS = 100;
+    public static final int MY_PERMISSIONS_REQUEST_CAMERA = 100;
     private static final String TAG = "MainActivity";
 
     private static String FILE_NAME = null;
@@ -310,6 +313,22 @@ public class MainActivity extends AppCompatActivity
         @Override
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
+        }
+    }
+
+    protected void askPermission() {
+        final ArrayList<String> permissionsList = new ArrayList<String>();
+        addPermissions(permissionsList, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        addPermissions(permissionsList, Manifest.permission.CAMERA);
+
+        if(permissionsList.size() > 0) {
+            ActivityCompat.requestPermissions(MainActivity.this, permissionsList.toArray(new String[permissionsList.size()]), REQUEST_CODE_MULTIPLE_PERMISSIONS);
+        }
+    }
+
+    private void addPermissions(ArrayList<String> permissionsList, String permission) {
+        if(ContextCompat.checkSelfPermission(MainActivity.this, permission) != PackageManager.PERMISSION_GRANTED) {
+            permissionsList.add(permission);
         }
     }
 }
