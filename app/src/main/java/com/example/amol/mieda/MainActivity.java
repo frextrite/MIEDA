@@ -312,7 +312,24 @@ public class MainActivity extends AppCompatActivity
                 boolean isOk = true;
                 if(grantResults.length > 0) {
                     for(int i = 0; i < permissions.length; i++) {
-                        if(!(grantResults[i] == PackageManager.PERMISSION_GRANTED)) {
+                        int permissionGrantResults = grantResults[i];
+                        if(!(permissionGrantResults == PackageManager.PERMISSION_GRANTED)) {
+                            boolean showRationale = ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, permissions[i]);
+                            if(!showRationale) {
+                                // User denied permission and checked "Never Ask Again"
+                                /* @TODO:
+                                 * explain the user why this permission is important and
+                                 * redirect the user to the App settings page */
+                            } else if(Manifest.permission.WRITE_EXTERNAL_STORAGE.equals(permissions[i])) {
+                                // Explain the user why the permission is important and re ask
+                            } else if(Manifest.permission.CAMERA.equals(permissions[i])) {
+                                // Explain the user why the permission is important and re ask
+                            } else if(Manifest.permission.RECORD_AUDIO.equals(permissions[i])) {
+                                // Explain the user why the permission is important and re ask
+                            }
+                            /* @TODO: create a global variable to handle all permissions */
+
+                            /* Meanwhile use this */
                             isOk = false;
                         }
                     }
