@@ -69,6 +69,9 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        /* Ask for permissions */
+        askPermission();
+
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -179,20 +182,6 @@ public class MainActivity extends AppCompatActivity
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        switch (requestCode) {
-            case MY_PERMISSIONS_REQUEST_CAMERA: {
-                if(grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    Intent camera_intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                    startActivityForResult(camera_intent, TAKE_PICTURE);
-                } else {
-                    Log.d(TAG, "onRequestPermissionsResult: DENIED!");
-                }
-            }
-        }
     }
 
     @Override
@@ -316,10 +305,30 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case REQUEST_CODE_MULTIPLE_PERMISSIONS: {
+                boolean isOk = true;
+                if(grantResults.length > 0) {
+                    for(int i = 0; i < permissions.length; i++) {
+                        if(!(grantResults[i] == PackageManager.PERMISSION_GRANTED)) {
+                            isOk = false;
+                        }
+                    }
+                    if(!isOk) {
+                        askPermission();
+                    }
+                }
+            }
+        }
+    }
+
     protected void askPermission() {
         final ArrayList<String> permissionsList = new ArrayList<String>();
         addPermissions(permissionsList, Manifest.permission.WRITE_EXTERNAL_STORAGE);
         addPermissions(permissionsList, Manifest.permission.CAMERA);
+        addPermissions(permissionsList, Manifest.permission.RECORD_AUDIO);
 
         if(permissionsList.size() > 0) {
             ActivityCompat.requestPermissions(MainActivity.this, permissionsList.toArray(new String[permissionsList.size()]), REQUEST_CODE_MULTIPLE_PERMISSIONS);
